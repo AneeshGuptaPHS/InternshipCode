@@ -1,0 +1,57 @@
+pacman::p_load("bugphyzz", "tibble", "curatedMetagenomicData", "EnrichmentBrowser", "SummarizedExperiment", "dplyr", "stringr", "EnhancedVolcano", "dbplyr", "DESeq2", "png", "qusage", "taxize")
+source("old_make_signatures.R")
+source("deAnaPhyzz.R")
+
+#opens the data
+ye <- curatedMetagenomicData("ThomasAM_2019_c.relative_abundance", dryrun = F, counts = T, rownames = "long")
+ye.se <- ye[[1]]
+
+#makes the group which is needed for deAna
+grp1 = ifelse(ye.se$study_condition == "control" , 0, 1)
+ye.se$GROUP = grp1
+assay(ye.se) = assay(ye.se) + 1
+
+#differential expression analysis
+ye.se.Ana <- deAna(ye.se, de.method = "DESeq2", filter.by.expr = F)
+
+reg_name <- function(MetaPhlAn){
+  temp <- sub(".*g__", "", MetaPhlAn)
+  gsub("\\|s__.*", "", temp)
+  gsub("_noname", "", temp)
+}
+
+.getLast <- function(n)
+{
+  spl <- unlist(strsplit(n, "\\|"))
+  spl[length(spl)]
+}
+
+#renames rownames to species
+rd <- rowData(ye.se.Ana)
+rownames(rd) <- vapply(rownames(rd), reg_name,
+                          character(1), USE.NAMES = FALSE)
+rownames(rd) <- vapply(rownames(rd), .getLast,
+                          character(1), USE.NAMES = FALSE)
+rownames(rd) <- substr(rownames(rd), 4, nchar(rownames(rd)))
+
+#filters results to only be bacteria of interest
+sphingoProducers <- scan("new sps.txt", character(), quote = "")
+rd <- as.data.frame(rd)
+rd <- filter(rd, genus %in% sphingoProducers, abs(FC) != 30, FC != 0)
+rd[ order((rownames(rd))), ] 
+
+#table of significant values
+volcanoDataRed <- filter(rd, log2(abs(FC))>1, ADJ.PVAL < .05)
+
+#makes volcano plot
+png(filename = "volcanoThomasAMc.png", res = 300, height = 1800, width = 2500)
+EnhancedVolcano(rd,
+                lab = rownames(rd),
+                pCutoff = 0.05,
+                title = 'Differential Abundance[DESeq2]',
+                x = 'FC',
+                y = 'ADJ.PVAL',
+                xlim = c(-30, 45),
+                ylim = c(0, 25),
+                pointSize = 2.5)
+dev.off()
