@@ -35,7 +35,7 @@ rownames(rd) <- vapply(rownames(rd), .getLast,
                           character(1), USE.NAMES = FALSE)
 rownames(rd) <- substr(rownames(rd), 4, nchar(rownames(rd)))
 
-#filters volcanoData to only contain the bacteria of interest
+#filters results to only contain the bacteria of interest
 sphingoProducers <- scan("new sps.txt", character(), quote = "")
 rd <- as.data.frame(rd)
 rd <- filter(rd, genus %in% sphingoProducers, abs(FC) != 30, FC != 0)
