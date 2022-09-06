@@ -1,0 +1,20 @@
+Acetobacter
+Acholeplasma
+Bacteroides
+Bdellovibrio
+Chlorobium
+Cystobacter
+Flectobacillicus
+Fusobacterium
+Mycoplasma
+Myxococcus
+Novosphingobium
+Odoribacter Splanchnicus
+Parabacteroides
+Pedobacter
+Porphyromonas
+Prevotella
+Sphingobacterium
+Sphingomonas
+Thermonema
+Zymomonas
