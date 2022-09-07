@@ -38,16 +38,17 @@ rownames(rd) <- substr(rownames(rd), 4, nchar(rownames(rd)))
 #filters results to only contain the bacteria of interest
 sphingoProducers <- scan("new sps.txt", character(), quote = "")
 rd <- as.data.frame(rd)
-rd <- filter(rd, genus %in% sphingoProducers, abs(FC) != 30, FC != 0)
-rd[ order((rownames(rd))), ] 
+rd <- filter(rd, genus %in% sphingoProducers | species %in% sphingoProducers, abs(FC) != 30, FC != 0) #gets rid of the bacterial only present on one side
+rd[ order((rownames(rd))), ] #clumps genera together and makes the table easier to use overall
 
 #table of significant values
 volcanoDataRed <- filter(rd, log2(abs(FC))>1, ADJ.PVAL < .05)
+importantColumns <- subset(volcanoDataRed, select = c('species', 'FC', 'ADJ.PVAL'))
 
 #Makes the volcano plot
 png(filename = "volcanoWirbelJ.png", res = 300, height = 1800, width = 2500)
 EnhancedVolcano(rd,
-                lab = rownames(rd),
+                lab = rd$genus,
                 pCutoff = 0.05,
                 title = 'Differential Abundance[DESeq2]',
                 x = 'FC',
